@@ -1,0 +1,15 @@
+/* ledger */
+.upflow-toggler-ledger    { background-color: #c79810; color: #ffffff; }
+.upflow-ledger {
+  font-family: monospace;
+  font-size: 1em;
+  height: 10em;
+  width: 100%;
+}
+.upflow-preview-ledger table {
+  width: 100%;
+}
+.upflow-preview-ledger caption {
+  background-color: #eee;
+  padding: .25em;
+}
