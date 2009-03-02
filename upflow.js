@@ -43,10 +43,10 @@ upflow.computedStyle = function(elem, cssProperty) {
   if (cssProperty == 'opacity' && elem.filters) { // IE opacity
     try {
       return elem.filters.item('DXImageTransform.Microsoft.Alpha').opacity / 100;
-    } catch(e) {
+    } catch (e) {
       try {
         return elem.filters.item('alpha').opacity / 100;
-      } catch(e) {}
+      } catch (e) {}
     }
   }
   if (elem.currentStyle) {
@@ -731,11 +731,25 @@ upflow.createBlockBase = function(className, createInput, initialValue) {
   block.inputWrap.appendChild(block.input);
   upflow.bindKeyListeners(block);
 
+  block.labelTable = document.createElement("table");
+  block.labelTable.style.width = "100%";
+  block.inputWrap.appendChild(block.labelTable);
+  var tbody = block.labelTable.appendChild(document.createElement("tbody"));
+  var tr = tbody.appendChild(document.createElement("tr"));
+
   if (upflow.registry[className].description) {
     block.label = document.createElement("label");
     block.label.innerHTML = upflow.escapeHtmlBr(upflow.registry[className].description);
-    block.inputWrap.appendChild(block.label);
+    var td = tr.appendChild(document.createElement("td"));
+    td.appendChild(block.label);
   }
+  block.closeButton = document.createElement("label");
+  block.closeButton.style.display = "inline";
+  block.closeButton.style.cursor = "pointer";
+  block.closeButton.innerHTML = "Close";
+  var td = tr.appendChild(document.createElement("td"));
+  td.align = "right";
+  td.appendChild(block.closeButton);
 
   block.preview = document.createElement("div");
   block.preview.className = "upflow-preview-" + className;
