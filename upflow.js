@@ -421,7 +421,6 @@ upflow.registry = {
       return upflow.createBlockBase("preformatted", upflow.createTextarea, value);
     },
     match: function(text) {
-      console.log(text);
       var lines = upflow.splitString(text, /\n/);
       var trimmed = [];
       for (var ii=0; ii < lines.length; ii++) {
