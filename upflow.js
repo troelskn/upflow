@@ -2,12 +2,6 @@
 upflow = {};
 
 // some utilities
-upflow.showdown = new Attacklab.showdown.converter();
-
-upflow.escapeHtmlBr = function(text) {
-  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/(\n\r|\n|\r)/g, "<br/>");
-};
-
 upflow.escapeHtml = function(text) {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 };
@@ -24,83 +18,6 @@ upflow.deferredEvent = function(element, event, handler) {
     tout = setTimeout(handler, 100);
   };
   return canceller;
-};
-
-upflow.keys = function(list) {
-  var keys = [];
-  for (var key in list) {
-    keys.push(key);
-  }
-  return keys;
-};
-
-upflow.computedStyle = function(elem, cssProperty) {
-  var arr = cssProperty.split('-');
-  var cssProperty = arr[0];
-  for (var i = 1; i < arr.length; i++) {
-    cssProperty += arr[i].charAt(0).toUpperCase() + arr[i].substring(1);
-  }
-  if (cssProperty == 'opacity' && elem.filters) { // IE opacity
-    try {
-      return elem.filters.item('DXImageTransform.Microsoft.Alpha').opacity / 100;
-    } catch (e) {
-      try {
-        return elem.filters.item('alpha').opacity / 100;
-      } catch (e) {}
-    }
-  }
-  if (elem.currentStyle) {
-    return elem.currentStyle[cssProperty];
-  }
-  if (typeof(document.defaultView) == 'undefined') {
-    return undefined;
-  }
-  if (document.defaultView === null) {
-    return undefined;
-  }
-  var style = document.defaultView.getComputedStyle(elem, null);
-  if (typeof(style) == 'undefined' || style === null) {
-    return undefined;
-  }
-  var selectorCase = cssProperty.replace(/([A-Z])/g, '-$1').toLowerCase();
-  return style.getPropertyValue(selectorCase);
-};
-
-upflow.getElementDimensions = function(elem) {
-  if (typeof(elem.w) == 'number' || typeof(elem.h) == 'number') {
-    return {w: elem.w || 0, h: elem.h || 0};
-  }
-  if (!elem) {
-    return undefined;
-  }
-  if (upflow.computedStyle(elem, 'display') != 'none') {
-    return {w: elem.offsetWidth || 0, h: elem.offsetHeight || 0};
-  }
-  var s = elem.style;
-  var originalVisibility = s.visibility;
-  var originalPosition = s.position;
-  s.visibility = 'hidden';
-  s.position = 'absolute';
-  s.display = '';
-  var originalWidth = elem.offsetWidth;
-  var originalHeight = elem.offsetHeight;
-  s.display = 'none';
-  s.position = originalPosition;
-  s.visibility = originalVisibility;
-  return {w: originalWidth, h: originalHeight};
-};
-
-upflow.getElementPosition = function(obj) {
-  var curleft = curtop = 0;
-  if (obj.offsetParent) {
-    curleft = obj.offsetLeft
-      curtop = obj.offsetTop
-      while (obj = obj.offsetParent) {
-        curleft += obj.offsetLeft
-        curtop += obj.offsetTop
-      }
-  }
-  return {x: curleft, y: curtop};
 };
 
 /*
@@ -178,119 +95,34 @@ upflow.splitString = function(str, s /* separator */, limit) {
 	return output;
 };
 
-
-
 // main entrypoint
 upflow.attach =  function(canvas, content) {
   return new upflow.Canvas(canvas, content);
 };
 
-upflow.popupElement = null;
-upflow.selectBlockType = function(current, toggler) {
-  var types = upflow.keys(upflow.registry);
-  if (!upflow.popupElement) {
-    upflow.popupElement = document.body.appendChild(document.createElement("div"));
-    upflow.popupElement.className = "upflow-popup-element";
-  }
-  upflow.popupElement.style.display = "block";
-  while (upflow.popupElement.hasChildNodes()) {
-    upflow.popupElement.removeChild(upflow.popupElement.firstChild);
-  }
-  var listener = function(newType) {};
-  var createHandler = function(type) {
-    return function() {
-      upflow.popupElement.style.display = "none";
-      listener(type);
-    };
-  };
-
-  var table = upflow.popupElement.appendChild(document.createElement("table"));
-  table.style.width = "100%";
-  var tbody = table.appendChild(document.createElement("tbody"));
-  var tr = tbody.appendChild(document.createElement("tr"));
-  var td_main = tr.appendChild(document.createElement("td"));
-  var td_close = tr.appendChild(document.createElement("td"));
-  td_close.style.width = "1em";
-  td_close.vAlign = "top";
-  var close = td_close.appendChild(document.createElement("div"));
-  close.innerHTML = "&#x2716;";
-  close.title = "Click to close";
-  close.className = "upflow-popup-close";
-  close.onclick = function() { upflow.popupElement.style.display = "none"; }
-
-  var table_types = td_main.appendChild(document.createElement("table"));
-  table_types.style.width = "100%";
-  var tbody_types = table_types.appendChild(document.createElement("tbody"));
-  var tr_current = tbody_types.appendChild(document.createElement("tr"));
-  for (ii in types) {
-    if (tr_current.childNodes.length > 1) {
-      tr_current = tbody_types.appendChild(document.createElement("tr"));
-    }
-    var td_type = tr_current.appendChild(document.createElement("td"));
-    td_type.style.width = "50%";
-    var className = types[ii];
-    var element = td_type.appendChild(document.createElement("div"));
-    element.style.margin = ".25em 0";
-    var icon = document.createElement("div");
-    if (upflow.registry[className].description) {
-      icon.title = upflow.registry[className].description;
-    }
-    if (upflow.registry[className].symbol) {
-      icon.innerHTML = upflow.registry[className].symbol;
-    }
-    icon.className = "upflow-toggler upflow-toggler-" + className;
-    element.appendChild(icon);
-    var span = element.appendChild(document.createElement("span"));
-    span.style.display = "block";
-    span.style.cssFloat = "left";
-    span.style.height = "2em";
-    span.style.lineHeight = "2em";
-    span.style.marginLeft = ".25em";
-    if (current == className) {
-      span.style.color = "white";
-    } else {
-      span.style.color = "#888";
-    }
-    span.style.fontWeight = "bold";
-    span.style.cursor = "pointer";
-    span.innerHTML = upflow.escapeHtmlBr(className);
-    element.appendChild(document.createElement("br")).style.clear = "both";
-    element.onclick = createHandler(className);
-  }
-
-  var hr = upflow.popupElement.appendChild(document.createElement("hr"));
-  var span = upflow.popupElement.appendChild(document.createElement("span"));
-  span.className = "upflow-popup-action";
-  span.innerHTML = "&#x2716; Delete";
-  span.title = "Delete this block";
-  var on_delete = function() {};
-  span.onclick = function() {
-    on_delete();
-    upflow.popupElement.style.display = "none";
-  };
-
-  upflow.popupElement.appendChild(document.createTextNode(":"));
-  var span2 = upflow.popupElement.appendChild(document.createElement("span"));
-  span2.className = "upflow-popup-action";
-  span2.innerHTML = "&#x21F5; Move";
-  span2.title = "Move this block up or down";
-
-  var dim = upflow.getElementPosition(toggler);
-  upflow.popupElement.style.top = dim.y + "px";
-  upflow.popupElement.style.left = dim.x + "px";
-  var d = { onCompleted: function(callback) { listener = callback; return d; }, onDelete: function(callback) { on_delete = callback; return d; }};
-  return d;
-};
-
+// Canvas represents the entire editing area
+// A Canvas contains multiple Blocks
 upflow.Canvas = function(canvas, content) {
   this.blocks = [];
-  var block = upflow.createDefaultBlock(content.value);
+  var block = upflow.createBlock(content.value);
   this.container = canvas;
   this.contentField = content;
   this.appendBlock(block);
   if (block.toMarkdown() == "") {
     block.focus();
   } else {
+    upflow.roundTrip(block);
+  }
+};
+
+upflow.Canvas.prototype.setContent = function(text) {
+  var blocks = this.blocks;
+  for (var ii = 0, ll = blocks.length; ii < ll; ii++) {
+    this.removeBlock(blocks[ii]);
+  }
+  var block = upflow.createBlock(text);
+  this.appendBlock(block);
+  if (block.toMarkdown() != "") {
     upflow.roundTrip(block);
   }
 };
@@ -311,13 +143,15 @@ upflow.Canvas.prototype.updateContentField = function() {
   this.contentField.value = this.toMarkdown();
 };
 
-upflow.Canvas.prototype.own = function(block) {
+upflow.Canvas.prototype.own = function(block, deferUpdate) {
   block.owner = this;
   this.blocks.push(block);
-  this.updateContentField();
+  if (!deferUpdate) {
+    this.updateContentField();
+  }
 };
 
-upflow.Canvas.prototype.loose = function(block) {
+upflow.Canvas.prototype.loose = function(block, deferUpdate) {
   block.owner = null;
   var blocks = this.blocks;
   var tmp = [];
@@ -327,26 +161,28 @@ upflow.Canvas.prototype.loose = function(block) {
     }
   }
   this.blocks = tmp;
-  this.updateContentField();
+  if (!deferUpdate) {
+    this.updateContentField();
+  }
 };
 
-upflow.Canvas.prototype.appendBlock = function(block) {
+upflow.Canvas.prototype.appendBlock = function(block, deferUpdate) {
   this.container.appendChild(block.container);
-  this.own(block);
+  this.own(block, deferUpdate);
 };
 
-upflow.Canvas.prototype.insertBlockAfter = function(block, relative) {
+upflow.Canvas.prototype.insertBlockAfter = function(block, relative, deferUpdate) {
   if (relative.nextSibling) {
     this.container.insertBefore(block.container, relative.nextSibling);
   } else {
     this.container.appendChild(block.container);
   }
-  this.own(block);
+  this.own(block, deferUpdate);
 };
 
-upflow.Canvas.prototype.insertBlockBefore = function(block, relative) {
+upflow.Canvas.prototype.insertBlockBefore = function(block, relative, deferUpdate) {
   this.container.insertBefore(block.container, relative);
-  this.own(block);
+  this.own(block, deferUpdate);
 };
 
 upflow.Canvas.prototype.removeBlock = function(block) {
@@ -401,292 +237,69 @@ upflow.bindKeyListeners = function(block) {
   return element;
 };
 
-upflow.createInputText = function() {
-  var input = document.createElement("input");
-  input.type = "text";
-  return input;
+upflow.filters = [];
+
+upflow.addFilter = function(filter) {
+  upflow.filters.unshift(filter);
 };
 
-upflow.createTextarea = function() {
-  return document.createElement("textarea");
-};
-
-// registry of blocktypes
-// you can add your own, if you fancy
-upflow.registry = {
-  preformatted: {
-    description: "Preformatted text",
-    symbol: "&#x2630;", // &#x2630; -> preformatted
-    create: function(value) {
-      return upflow.createBlockBase("preformatted", upflow.createTextarea, value);
-    },
-    match: function(text) {
-      var lines = upflow.splitString(text, /\n/);
-      var trimmed = [];
-      for (var ii=0; ii < lines.length; ii++) {
-        var match = lines[ii].match(/^\s{4}(.*)$/);
-        if (!match) {
-          return false;
-        }
-        trimmed.push(match[1]);
-      }
-      return trimmed.join("\n");
-    },
-    text2markdown: function(text) {
-      return "    " + text.replace(/\n/g, "\n    ");
-    },
-    text2html: function(text) {
-      return "<pre>" + upflow.escapeHtml(text) + "</pre>";
-    }
-  },
-
-  header1: {
-    description: "Header",
-    symbol: "H1",
-    create: function(value) {
-      return upflow.createBlockBase("header1", upflow.createInputText, value);
-    },
-    match: function(text) {
-      var match = text.match(/^([^\n]+)\n=[=]+\s*$/);
-      if (match) {
-        return match[1];
-      }
-      var match = text.match(/^\s*#\s*([^#]+[^\n]+)\s*$/);
-      if (match) {
-        return match[1];
-      }
-      return false;
-    },
-    text2markdown: function(text) {
-      return text + "\n===";
-    },
-    text2html: function(text) {
-      return upflow.escapeHtmlBr(text);
-    }
-  },
-
-  header2: {
-    description: "Subheader",
-    symbol: "h2",
-    create: function(value) {
-      return upflow.createBlockBase("header2", upflow.createInputText, value);
-    },
-    match: function(text) {
-      var match = text.match(/^([^\n]+)\n-[-]+\s*$/);
-      if (match) {
-        return match[1];
-      }
-      var match = text.match(/^\s*##\s*([^#]+[^\n]+)\s*$/);
-      if (match) {
-        return match[1];
-      }
-      return false;
-    },
-    text2markdown: function(text) {
-      return text + "\n---";
-    },
-    text2html: function(text) {
-      return upflow.escapeHtmlBr(text);
-    }
-  },
-
-  header3: {
-    description: "Subheader 3",
-    symbol: "h3",
-    create: function(value) {
-      return upflow.createBlockBase("header3", upflow.createInputText, value);
-    },
-    match: function(text) {
-      var match = text.match(/^\s*###\s*([^#]+[^\n]+)\s*$/);
-      if (match) {
-        return match[1];
-      }
-      return false;
-    },
-    text2markdown: function(text) {
-      return "###" + text + "\n";
-    },
-    text2html: function(text) {
-      return upflow.escapeHtmlBr(text);
-    }
-  },
-
-  header4: {
-    description: "Subheader 4",
-    symbol: "h4",
-    create: function(value) {
-      return upflow.createBlockBase("header4", upflow.createInputText, value);
-    },
-    match: function(text) {
-      var match = text.match(/^\s*####\s*([^#]+[^\n]+)\s*$/);
-      if (match) {
-        return match[1];
-      }
-      return false;
-    },
-    text2markdown: function(text) {
-      return "####" + text + "\n";
-    },
-    text2html: function(text) {
-      return upflow.escapeHtmlBr(text);
-    }
-  },
-
-  header5: {
-    description: "Subheader 5",
-    symbol: "h5",
-    create: function(value) {
-      return upflow.createBlockBase("header5", upflow.createInputText, value);
-    },
-    match: function(text) {
-      var match = text.match(/^\s*#####\s*([^#]+[^\n]+)\s*$/);
-      if (match) {
-        return match[1];
-      }
-      return false;
-    },
-    text2markdown: function(text) {
-      return "#####" + text + "\n";
-    },
-    text2html: function(text) {
-      return upflow.escapeHtmlBr(text);
-    }
-  },
-
-  header6: {
-    description: "Subheader 6",
-    symbol: "h6",
-    create: function(value) {
-      return upflow.createBlockBase("header6", upflow.createInputText, value);
-    },
-    match: function(text) {
-      var match = text.match(/^\s*######\s*([^#]+[^\n]+)\s*$/);
-      if (match) {
-        return match[1];
-      }
-      return false;
-    },
-    text2markdown: function(text) {
-      return "######" + text + "\n";
-    },
-    text2html: function(text) {
-      return upflow.escapeHtmlBr(text);
-    }
-  },
-
-  blockquote: {
-    description: "Blockquote",
-    symbol: "&#x275e;",
-    create: function(value) {
-      return upflow.createBlockBase("blockquote", upflow.createTextarea, value);
-    },
-    match: function(text) {
-      var lines = upflow.splitString(text, /\n/);
-      var trimmed = [];
-      for (var ii=0; ii < lines.length; ii++) {
-        var match = lines[ii].match(/^>\s*(.*)$/);
-        if (!match) {
-          return false;
-        }
-        trimmed.push(match[1]);
-      }
-      return trimmed.join("\n");
-    },
-    text2markdown: function(text) {
-      return "> " + text.replace(/\n/g, "\n> ");
-    },
-    text2html: function(text) {
-      return "<blockquote><p>" + upflow.escapeHtml(text) + "</p></blockquote>";
-    }
-  },
-
-  paragraph: {
-    description: "Markdown formatted text",
-    symbol: "&#182;",
-    create: function(value) {
-      return upflow.createBlockBase("paragraph", upflow.createTextarea, value);
-    },
-    match: function(text) {
-      return text;
-    },
-    text2markdown: function(text) {
-      return text;
-    },
-    text2html: function(text) {
-      return upflow.showdown.makeHtml(text);
-    }
+upflow.text2html = function(text) {
+  for (var ii=0,ff=upflow.filters,len=ff.length; ii < len; ii++) {
+    text = ff[ii](text);
   }
-
+  return text;
 };
 
-upflow.createDefaultBlock = upflow.registry.paragraph.create;
+// default filter (text -> markdown)
+upflow.showdown = new Attacklab.showdown.converter();
 
-upflow.registerBlock = function(name, block) {
-  var tmp = {};
-  for (k in upflow.registry) {
-    if (k == "paragraph") {
-      tmp[name] = block;
-    }
-    tmp[k] = upflow.registry[k];
+upflow.addFilter(
+  function(input) {
+    return upflow.showdown.makeHtml(input);
   }
-  upflow.registry = tmp;
-};
+);
 
 // markdown -> chunks
 upflow.parseToTokens = function(text) {
-  var chunks = upflow.splitString(
+  return upflow.splitString(
     text
     .replace(/^(\s*={2,}\s*)$/mg, "$1\n")
     .replace(/^(\s*-{2,}\s*)$/mg, "$1\n")
-    /*.replace(/^\s+/g, '')*/ // causes trouble with <pre>
     .replace(/\s+$/g, '')
     .replace(/^[ \t]+$/mg, "")
     .replace(/(\r\n|\r|\n)/g, "\n")
   , /[\n]{2,}/);
-
-  var registry = upflow.registry;
-  var tokens = [];
-  var find = function(text) {
-    for (var type in registry) {
-      var result = registry[type].match(text);
-      if (result != false) {
-        return {type: type, value: result, create: registry[type].create};
-      }
-    }
-  };
-  for (var i in chunks) {
-    tokens.push(find(chunks[i]));
-  }
-  return tokens;
 };
 
 upflow.roundTrip = function(block) {
   var tokens = upflow.parseToTokens(block.toMarkdown());
-  if (tokens.length == 0 || (tokens.length == 1 && tokens[0].type == block.getType())) { // dunno if == 0 is needed?
+  if (tokens.length < 2) {
     return false;
   }
   var owner = block.owner;
+  if (owner == null) {
+    throw new Error("owner is null");
+  }
   var previousSibling = block.container.previousSibling;
   var nextSibling = block.container.nextSibling;
   block.removeBlock();
   for (var i in tokens) {
-    var newblock = tokens[i].create(tokens[i].value);
+    var newblock = upflow.createBlock(tokens[i]);
     if (previousSibling) {
-      owner.insertBlockAfter(newblock, previousSibling);
+      owner.insertBlockAfter(newblock, previousSibling, true);
     } else if (nextSibling) {
-      owner.insertBlockBefore(newblock, nextSibling);
+      owner.insertBlockBefore(newblock, nextSibling, true);
     } else {
-      owner.appendBlock(newblock);
+      owner.appendBlock(newblock, true);
     }
     previousSibling = newblock.container;
   }
+  owner.updateContentField();
   return true;
 };
 
-// block types
-upflow.createBlockBase = function(className, createInput, initialValue) {
+upflow.createBlock = function(initialValue) {
   var block = new upflow.Block();
-  block.type = className;
   block.initialValue = initialValue;
   block.container = document.createElement("div");
   block.container.className = "upflow-container";
@@ -697,20 +310,6 @@ upflow.createBlockBase = function(className, createInput, initialValue) {
     block.container.className = "upflow-container";
   };
 
-  block.toggler = document.createElement("div");
-  if (upflow.registry[className].description) {
-    block.toggler.title = upflow.registry[className].description;
-  }
-  if (upflow.registry[className].symbol) {
-    block.toggler.innerHTML = upflow.registry[className].symbol;
-  }
-  block.toggler.className = "upflow-toggler upflow-toggler-" + className;
-  block.toggler.onclick = function() {
-    cancelBlur();
-    block.toggleBlock();
-  };
-  block.container.appendChild(block.toggler);
-
   block.wrap = document.createElement("div");
   block.wrap.className = "upflow-field";
   block.container.appendChild(block.wrap);
@@ -718,9 +317,21 @@ upflow.createBlockBase = function(className, createInput, initialValue) {
   block.inputWrap = document.createElement("div");
   block.wrap.appendChild(block.inputWrap);
 
-  block.input = createInput();
-  block.input.className = "upflow-" + className;
+  block.input = document.createElement("textarea");
+  block.input.className = "upflow-editor";
   block.input.value = typeof(initialValue) == "undefined" ? "" : initialValue;
+  // resize textfield to match content
+  var lastValue = null;
+  block.input.onkeyup = function() {
+    if (lastValue != block.input.value) {
+      var lines = Math.max(
+        block.input.value.split("\n").length,
+        Math.round(block.input.value.length / 80)) + 6;
+      block.input.style.height = lines + "em";
+      lastValue = block.input.value;
+    }
+  };
+
   var cancelBlur = upflow.deferredEvent(
     block.input,
     "blur",
@@ -730,32 +341,78 @@ upflow.createBlockBase = function(className, createInput, initialValue) {
   block.inputWrap.appendChild(block.input);
   upflow.bindKeyListeners(block);
 
-  block.labelTable = document.createElement("table");
-  block.labelTable.style.width = "100%";
-  block.inputWrap.appendChild(block.labelTable);
-  var tbody = block.labelTable.appendChild(document.createElement("tbody"));
-  var tr = tbody.appendChild(document.createElement("tr"));
+  var toolbar = block.inputWrap.appendChild(document.createElement("div"));
+  toolbar.style.textAlign = "right";
+  toolbar.style.paddingRight = ".5em";
 
-  if (upflow.registry[className].description) {
-    block.label = document.createElement("label");
-    block.label.innerHTML = upflow.escapeHtmlBr(upflow.registry[className].description);
-    var td = tr.appendChild(document.createElement("td"));
-    td.appendChild(block.label);
-  }
-  block.closeButton = document.createElement("label");
-  block.closeButton.style.display = "inline";
-  block.closeButton.style.cursor = "pointer";
+  var createEventHandler = function(handler) {
+    return function(e) {
+      handler();
+      if (!e) var e = window.event;
+      e.cancelBubble = true;
+      if (e.stopPropagation) e.stopPropagation();
+      return false;
+    };
+  };
+
+  // toolbar -> Delete
+  block.deleteButton = document.createElement("a");
+  block.deleteButton.href = "#";
+  block.deleteButton.title = "Click to delete this block of text";
+  block.deleteButton.className = "upflow-action";
+  block.deleteButton.innerHTML = "Delete";
+  toolbar.appendChild(block.deleteButton);
+  block.deleteButton.onclick = createEventHandler(
+    function() {
+      cancelBlur();
+      if (!block.isOnlyBlock()) {
+        console.log("You're not alone.");
+        block.removeBlock();
+      }
+    });
+
+  // toolbar -> Separator
+  toolbar.appendChild(document.createTextNode(" : "));
+
+  // toolbar -> Move
+  block.moveButton = document.createElement("a");
+  block.moveButton.href = "#";
+  block.moveButton.title = "Click to move this block up/down. (Not yet implemented)";
+  block.moveButton.className = "upflow-action";
+  block.moveButton.innerHTML = "Move";
+  toolbar.appendChild(block.moveButton);
+  block.moveButton.onclick = createEventHandler(
+    function() {
+      cancelBlur();
+      if (!block.isOnlyBlock()) {
+        console.log("todo: toolbar -> Move");
+      }
+    });
+
+  // toolbar -> Separator
+  toolbar.appendChild(document.createTextNode(" : "));
+
+  // toolbar -> Close
+  block.closeButton = document.createElement("a");
+  block.closeButton.href = "#";
+  block.closeButton.title = "Click to stop editing this block";
+  block.closeButton.className = "upflow-action";
   block.closeButton.innerHTML = "Close";
-  var td = tr.appendChild(document.createElement("td"));
-  td.align = "right";
-  td.appendChild(block.closeButton);
+  toolbar.align = "right";
+  toolbar.appendChild(block.closeButton);
+  block.closeButton.onclick = createEventHandler(
+    function() {
+      cancelBlur();
+      block.onblur();
+    });
 
   block.preview = document.createElement("div");
-  block.preview.className = "upflow-preview-" + className;
+  block.preview.className = "upflow-preview";
   block.preview.title = "Click to edit";
-  block.preview.onclick = function() {
-    block.focus();
-  };
+  block.preview.onclick = createEventHandler(
+    function() {
+      block.focus();
+    });
 
   block.wrap.appendChild(block.preview);
 
@@ -763,7 +420,7 @@ upflow.createBlockBase = function(className, createInput, initialValue) {
   breaker.className = "upflow-br";
   block.container.appendChild(breaker);
 
-  // a hack. the browser needs to get control over the element, before the value is tampered
+  // A hack. The browser needs to get control over the element, before the value is tampered
   block.tamperedValue = block.input.value;
   setTimeout(
     function() {
@@ -779,7 +436,6 @@ upflow.Block = function() {
   this.owner = null;
 };
 
-// todo: rename -> setHtml
 upflow.Block.prototype.setHtml = function(html) {
   this.preview.innerHTML = html;
   this.preview.style.display = "block";
@@ -810,6 +466,7 @@ upflow.Block.prototype.blur = function() {
 upflow.Block.prototype.focus = function() {
   this.preview.style.display = "none";
   this.inputWrap.style.display = "block";
+  this.input.onkeyup();
   this.input.focus();
 };
 
@@ -825,15 +482,11 @@ upflow.Block.prototype.getUntamperedValue = function() {
 };
 
 upflow.Block.prototype.toMarkdown = function() {
-  return upflow.registry[this.type].text2markdown(this.input.value);
+  return this.input.value;
 };
 
 upflow.Block.prototype.toHtml = function() {
-  return upflow.registry[this.type].text2html(this.input.value);
-};
-
-upflow.Block.prototype.getType = function() {
-  return this.type;
+  return upflow.text2html(this.input.value);
 };
 
 upflow.Block.prototype.previousSiblingBlock = function() {
@@ -842,28 +495,6 @@ upflow.Block.prototype.previousSiblingBlock = function() {
 
 upflow.Block.prototype.nextSiblingBlock = function() {
   return this.owner.getNextBlock(this);
-};
-
-upflow.Block.prototype.toggleBlock = function() {
-  var self = this;
-  upflow.selectBlockType(self.type, self.toggler)
-  .onCompleted(
-    function(newType) {
-      if (self.type != newType) {
-        self.replaceBlock(upflow.registry[newType].create);
-      }
-    })
-  .onDelete(
-    function() {
-      self.removeBlock();
-    });
-};
-
-upflow.Block.prototype.replaceBlock = function(ctor) {
-  var replacement = ctor(this.getUntamperedValue());
-  this.owner.insertBlockAfter(replacement, this.container);
-  this.owner.removeBlock(this);
-  replacement.focus();
 };
 
 upflow.Block.prototype.removeBlock = function() {
@@ -875,7 +506,7 @@ upflow.Block.prototype.isOnlyBlock = function() {
   var children = parentNode.childNodes;
   var count = 0;
   for (var i in children) {
-    if (typeof(children[i]) != "undefined" && children[i].className == "upflow-container") {
+    if (typeof(children[i]) != "undefined" && typeof(children[i].className) != "undefined" && children[i].className.match(/^upflow-container/)) {
       count++;
       if (count > 1) {
         return false;

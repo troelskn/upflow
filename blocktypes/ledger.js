@@ -1,67 +1,54 @@
-upflow.registerBlock(
-  "ledger",
-  {
-    description: "A ledger style table",
-    symbol: "L",
-    create: function(value) {
-      return upflow.createBlockBase("ledger", upflow.createTextarea, value);
-    },
-    match: function(text) {
-      var match = text.match(/^(\.\.\s*ledger\s*\n)\s*\S+/);
-      if (!match) {
-        return false;
+upflow.addFilter(
+  function(input) {
+    var match = input.match(/^(\.\.\s*ledger\s*\n)\s*\S+/);
+    if (!match) {
+      return input;
+    }
+    var text = input.substring(match[1].length);
+    try {
+      var nodes = upflow.bml.parse(text).toNodes();
+      if (nodes.length == 0) {
+        return;
       }
-      return text.substring(match[1].length);
-    },
-    text2markdown: function(text) {
-      return "..ledger\n" + text;
-    },
-    text2html: function(text) {
-      try {
-        var nodes = upflow.bml.parse(text).toNodes();
-        if (nodes.length == 0) {
-          return;
-        }
-        var caption = null;
-        if (nodes[0].children.length == 0) {
-          caption = nodes[0].name;
-          nodes.shift();
-        }
-        var rows = [];
-        for (var i in nodes) {
-          var node = nodes[i];
-          var row = {'title': node.name, 'values': []};
-          for (var j in node.children) {
-            row.values.push(node.children[j].name);
-          }
-          rows.push(row);
-        }
-        var html = "<table>";
-        if (caption) {
-          html += "\n  <caption>" + upflow.escapeHtml(caption) + "</caption>";
-        }
-        html += "\n  <tbody>";
-        for (var ii=0; ii < rows.length; ii++) {
-          var row = rows[ii];
-          if (ii == rows.length - 1) {
-            html += "\n    <tr class=\"last\">";
-          } else if (ii == 0) {
-            html += "\n    <tr class=\"first\">";
-          } else {
-            html += "\n    <tr>";
-          }
-          html += "\n      <th scope=\"row\">" + upflow.escapeHtml(row.title) + "</th>";
-          for (var jj in row.values) {
-            html += "\n      <td>" + upflow.escapeHtml(row.values[jj]) + "</td>";
-          }
-          html += "\n    </tr>";
-        }
-        html += "\n  </tbody>";
-        html += "\n</table>";
-        return html;
-      } catch (e) {
-        return "Can't render content: " + upflow.escapeHtml(e.message);
+      var caption = null;
+      if (nodes[0].children.length == 0) {
+        caption = nodes[0].name;
+        nodes.shift();
       }
+      var rows = [];
+      for (var i in nodes) {
+        var node = nodes[i];
+        var row = {'title': node.name, 'values': []};
+        for (var j in node.children) {
+          row.values.push(node.children[j].name);
+        }
+        rows.push(row);
+      }
+      var html = "<table>";
+      if (caption) {
+        html += "\n  <caption>" + upflow.escapeHtml(caption) + "</caption>";
+      }
+      html += "\n  <tbody>";
+      for (var ii=0; ii < rows.length; ii++) {
+        var row = rows[ii];
+        if (ii == rows.length - 1) {
+          html += "\n    <tr class=\"last\">";
+        } else if (ii == 0) {
+          html += "\n    <tr class=\"first\">";
+        } else {
+          html += "\n    <tr>";
+        }
+        html += "\n      <th scope=\"row\">" + upflow.escapeHtml(row.title) + "</th>";
+        for (var jj in row.values) {
+          html += "\n      <td>" + upflow.escapeHtml(row.values[jj]) + "</td>";
+        }
+        html += "\n    </tr>";
+      }
+      html += "\n  </tbody>";
+      html += "\n</table>";
+      return html;
+    } catch (e) {
+      return "Can't render content: " + upflow.escapeHtml(e.message);
     }
   }
 );

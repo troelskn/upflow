@@ -7,10 +7,8 @@
 <link href="../upflow.css" rel="stylesheet" type="text/css"></link>
 <!-- upflow main : end -->
 <!-- upflow custom blocktypes : begin -->
-<script src="../blocktypes/ledger.js"></script>
-<link href="../blocktypes/ledger.css" rel="stylesheet" type="text/css"></link>
 <script src="../blocktypes/image.js"></script>
-<link href="../blocktypes/image.css" rel="stylesheet" type="text/css"></link>
+<script src="../blocktypes/ledger.js"></script>
 <!-- upflow custom blocktypes : end -->
 <script>
 window.onload = function() {
@@ -18,6 +16,8 @@ window.onload = function() {
   upflow.attach(
     document.getElementById("canvas"),
     document.getElementById("content"));
+
+  // Hide the original textarea
   document.getElementById("content").style.display = "none";
 };
 </script>
