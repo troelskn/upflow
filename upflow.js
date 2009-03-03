@@ -366,7 +366,6 @@ upflow.createBlock = function(initialValue) {
     function() {
       cancelBlur();
       if (!block.isOnlyBlock()) {
-        console.log("You're not alone.");
         block.removeBlock();
       }
     });
@@ -385,7 +384,7 @@ upflow.createBlock = function(initialValue) {
     function() {
       cancelBlur();
       if (!block.isOnlyBlock()) {
-        console.log("todo: toolbar -> Move");
+        alert("todo: toolbar -> Move");
       }
     });
 
