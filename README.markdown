@@ -1,13 +1,22 @@
 Upflow
 ======
 
-*Flowing markdown upstream.*
+*Flowing Markdown upstream.*
 
-A wysiwyg editor for [Markdown](http://daringfireball.net/projects/markdown/).
+A [wysiwym](http://en.wikipedia.org/wiki/WYSIWYM "definition at Wikipedia") editor for [Markdown](http://daringfireball.net/projects/markdown/ "Markdown homepage").
 
 Demo at: [http://troelskn.googlepages.com/upflow.html](http://troelskn.googlepages.com/upflow.html)
 
-Upflow uses the [Showdown library](http://attacklab.net/showdown/). *NB: Distributing the Attacklab obfuscated version.*
+Dependencies
+------------
+
+Upflow uses the [Showdown library](http://attacklab.net/showdown/ "Attacklab's Showdown demo"). 
+
+2009-03-27 *NB: Distributing an deobfuscated, minifyable version of the above code.*
+
+The [version of showdown.js distributed with Upflow](http://github.com/olleolleolle/wmd/blob/c43850ba996bd1689b674873e04b815faa8921cb/showdown.js) can be minified.
+
+A pull request has been sent to [derobins' wmd at GitHub](http://github.com/derobins/wmd/tree/master).
 
 Blocktypes are custom templates
 -------------------------------
