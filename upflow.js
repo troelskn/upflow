@@ -28,8 +28,9 @@ upflow.deferredEvent = function(element, event, handler) {
 */
 upflow.splitString = function(str, s /* separator */, limit) {
 	// if separator is not a regex, use the native split method
-	if (!(s instanceof RegExp))
+	if (!(s instanceof RegExp)) {
 		return str.split.apply(str, arguments);
+	}
 
 	var	flags = (s.global ? "g" : "") + (s.ignoreCase ? "i" : "") + (s.multiline ? "m" : ""),
 		s2 = new RegExp("^" + s.source + "$", flags),
@@ -49,42 +50,48 @@ upflow.splitString = function(str, s /* separator */, limit) {
 		limit = false;
 	} else {
 		limit = Math.floor(+limit);
-		if (!limit)
+		if (!limit) {
 			return [];
+		}
 	}
 
-	if (s.global)
+	if (s.global) {
 		s.lastIndex = 0;
-	else
+	} else {
 		s = new RegExp(s.source, "g" + flags);
+	}
 
 	while ((!limit || i++ <= limit) && (match = s.exec(str))) {
 		var emptyMatch = !match[0].length;
 
 		// Fix IE's infinite-loop-resistant but incorrect lastIndex
-		if (emptyMatch && s.lastIndex > match.index)
+		if (emptyMatch && s.lastIndex > match.index) {
 			s.lastIndex--;
+		}
 
 		if (s.lastIndex > lastLastIndex) {
 			// Fix browsers whose exec methods don't consistently return undefined for non-participating capturing groups
 			if (match.length > 1) {
 				match[0].replace(s2, function () {
 					for (var j = 1; j < arguments.length - 2; j++) {
-						if (arguments[j] === undefined)
+						if (arguments[j] === undefined) {
 							match[j] = undefined;
+						}
 					}
 				});
 			}
 
 			output = output.concat(str.slice(lastLastIndex, match.index));
-			if (1 < match.length && match.index < str.length)
+			if (1 < match.length && match.index < str.length) {
 				output = output.concat(match.slice(1));
+			}
 			lastLength = match[0].length; // only needed if s.lastIndex === str.length
 			lastLastIndex = s.lastIndex;
 		}
 
-		if (emptyMatch)
+		if (emptyMatch) {
 			s.lastIndex++; // avoid an infinite loop
+		}
 	}
 
 	// since this uses test(), output must be generated before restoring lastIndex
@@ -135,7 +142,7 @@ upflow.Canvas.prototype.toMarkdown = function() {
     if (text != "") {
       out.push(text);
     }
-  };
+  }
   return out.join("\n\n");
 };
 
@@ -215,9 +222,9 @@ upflow.Canvas.prototype.getPreviousBlock = function(block) {
 upflow.bindKeyListeners = function(block) {
   var element = block.input;
   element.onkeypress = function(e) {
-    if (!e) var e = window.event;
-    if (e.keyCode) var code = e.keyCode;
-    else if (e.which) var code = e.which;
+    if (!e) {var e = window.event;}
+    if (e.keyCode) {var code = e.keyCode;}
+    else if (e.which) {var code = e.which;}
     if (code == 27) {
       element.blur();
     } else if (code == 9) {
@@ -229,7 +236,7 @@ upflow.bindKeyListeners = function(block) {
       if (next) {
         next.focus();
         e.cancelBubble = true;
-        if (e.stopPropagation) e.stopPropagation();
+        if (e.stopPropagation) {e.stopPropagation();}
         return false;
       }
     }
@@ -348,9 +355,9 @@ upflow.createBlock = function(initialValue) {
   var createEventHandler = function(handler) {
     return function(e) {
       handler();
-      if (!e) var e = window.event;
+      if (!e) {var e = window.event;}
       e.cancelBubble = true;
-      if (e.stopPropagation) e.stopPropagation();
+      if (e.stopPropagation) {e.stopPropagation();}
       return false;
     };
   };
