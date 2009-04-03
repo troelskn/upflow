@@ -7,6 +7,10 @@ A [wysiwym](http://en.wikipedia.org/wiki/WYSIWYM "definition at Wikipedia") edit
 
 Demo at: [http://troelskn.googlepages.com/upflow.html](http://troelskn.googlepages.com/upflow.html)
 
+License and author
+------------------
+Upflow was written by [Troels Knak-Nielsen](http://github.com/troelskn/), and released under the [MIT license](http://www.opensource.org/licenses/mit-license.php). 
+
 Dependencies
 ------------
 

@@ -1,4 +1,7 @@
-/** upflow -- Flowing markdown upstream */
+/** upflow -- Flowing markdown upstream 
+    By Troels Knak-Nielsen <http://github.com/troelskn/> 
+    MIT license
+ */
 upflow = {};
 
 // some utilities
