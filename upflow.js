@@ -1,5 +1,5 @@
-/** upflow -- Flowing markdown upstream 
-    By Troels Knak-Nielsen <http://github.com/troelskn/> 
+/** upflow -- Flowing markdown upstream
+    By Troels Knak-Nielsen <http://github.com/troelskn/>
     MIT license
  */
 upflow = {};
@@ -365,6 +365,23 @@ upflow.createBlock = function(initialValue) {
     };
   };
 
+  // toolbar -> Insert
+  block.insertButton = document.createElement("a");
+  block.insertButton.href = "#";
+  block.insertButton.title = "Click to insert a new block of text following this";
+  block.insertButton.className = "upflow-action";
+  block.insertButton.innerHTML = "Insert";
+  toolbar.appendChild(block.insertButton);
+  block.insertButton.onclick = createEventHandler(
+    function() {
+      var newblock = upflow.createBlock('');
+      block.owner.insertBlockAfter(newblock, block, false);
+      newblock.focus();
+    });
+
+  // toolbar -> Separator
+  toolbar.appendChild(document.createTextNode(" : "));
+
   // toolbar -> Delete
   block.deleteButton = document.createElement("a");
   block.deleteButton.href = "#";
@@ -392,7 +409,6 @@ upflow.createBlock = function(initialValue) {
   toolbar.appendChild(block.moveButton);
   block.moveButton.onclick = createEventHandler(
     function() {
-      cancelBlur();
       if (!block.isOnlyBlock()) {
         alert("todo: toolbar -> Move");
       }
