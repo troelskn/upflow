@@ -182,8 +182,8 @@ upflow.Canvas.prototype.appendBlock = function(block, deferUpdate) {
 };
 
 upflow.Canvas.prototype.insertBlockAfter = function(block, relative, deferUpdate) {
-  if (relative.nextSibling) {
-    this.container.insertBefore(block.container, relative.nextSibling);
+  if (relative.container && relative.container.nextSibling) {
+    this.container.insertBefore(block.container, relative.container.nextSibling);
   } else {
     this.container.appendChild(block.container);
   }
