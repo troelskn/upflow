@@ -558,7 +558,7 @@ upflow.createBlock = function(initialValue) {
   toolbar.appendChild(block.moveButton);
   block.moveButton.onclick = createEventHandler(
     function() {
-      if (!block.isOnlyBlock()) {
+      if (!block.isOnlyBlock() && !block.isBlank()) {
         upflow.startMove(block);
       }
     });
@@ -618,7 +618,7 @@ upflow.Block.prototype.setHtml = function(html) {
 };
 
 upflow.Block.prototype.onblur = function() {
-  if (this.input.value.replace(/\s/g, "") == "") {
+  if (this.isBlank()) {
     if (this.isOnlyBlock()) {
       return;
     }
@@ -632,6 +632,10 @@ upflow.Block.prototype.onblur = function() {
     this.owner.updateContentField();
   }
   this.setHtml(this.toHtml());
+};
+
+upflow.Block.prototype.isBlank = function() {
+  return this.input.value.replace(/\s/g, "") == "";
 };
 
 upflow.Block.prototype.blur = function() {
