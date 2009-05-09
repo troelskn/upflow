@@ -187,12 +187,35 @@ upflow.Canvas.prototype.insertBlockAfter = function(block, relative, deferUpdate
   } else {
     this.container.appendChild(block.container);
   }
-  this.own(block, deferUpdate);
+  //this.own(block, deferUpdate);
+  block.owner = this;
+  var tmp = [];
+  for (var ii = 0, ll = this.blocks.length; ii < ll; ii++) {
+    tmp.push(this.blocks[ii]);
+    if (this.blocks[ii] == relative) {
+      tmp.push(block);
+    }
+  }
+  this.blocks = tmp;
+  if (!deferUpdate) {
+    this.updateContentField();
+  }
 };
 
 upflow.Canvas.prototype.insertBlockBefore = function(block, relative, deferUpdate) {
-  this.container.insertBefore(block.container, relative);
-  this.own(block, deferUpdate);
+  this.container.insertBefore(block.container, relative.container);
+  //this.own(block, deferUpdate);
+  var tmp = [];
+  for (var ii = 0, ll = this.blocks.length; ii < ll; ii++) {
+    if (this.blocks[ii] == relative) {
+      tmp.push(block);
+    }
+    tmp.push(this.blocks[ii]);
+  }
+  this.blocks = tmp;
+  if (!deferUpdate) {
+    this.updateContentField();
+  }
 };
 
 upflow.Canvas.prototype.removeBlock = function(block) {
@@ -221,6 +244,9 @@ upflow.Canvas.prototype.getPreviousBlock = function(block) {
     last = this.blocks[ii];
   }
 };
+
+upflow.Canvas.prototype.onMouseOverBlock = function(block) {};
+upflow.Canvas.prototype.onActivateBlock = function(block) {};
 
 upflow.bindKeyListeners = function(block) {
   var element = block.input;
@@ -269,6 +295,64 @@ upflow.addFilter(
   }
 );
 
+upflow.getElementDimensions = function(elem) {
+  if (typeof(elem.w) == 'number' || typeof(elem.h) == 'number') {
+    return {w: elem.w || 0, h: elem.h || 0};
+  }
+  if (!elem) {
+    return undefined;
+  }
+  if (elem.display != 'none') {
+    return {w: elem.offsetWidth || 0, h: elem.offsetHeight || 0};
+  }
+  var s = elem.style;
+  var originalVisibility = s.visibility;
+  var originalPosition = s.position;
+  s.visibility = 'hidden';
+  s.position = 'absolute';
+  s.display = '';
+  var originalWidth = elem.offsetWidth;
+  var originalHeight = elem.offsetHeight;
+  s.display = 'none';
+  s.position = originalPosition;
+  s.visibility = originalVisibility;
+  return {w: originalWidth, h: originalHeight};
+};
+
+upflow.ghost = {};
+upflow.ghost.start = function(block) {
+  var targetBlock = block.previousSiblingBlock();
+  if (!targetBlock) {
+    throw new Error("Can't move topmost block");
+  }
+  var blockToMove = block;
+  var container = document.createElement("div");
+  container.className = "upflow-preview upflow-ghost";
+  container.title = "Click to drop";
+  container.innerHTML = blockToMove.preview.innerHTML;
+  //container.style.height = upflow.getElementDimensions(blockToMove.container).h + 'px';
+  blockToMove.container.parentNode.insertBefore(container, blockToMove.container);
+  blockToMove.container.style.display = "none";
+  blockToMove.owner.onMouseOverBlock = function(block) {
+    targetBlock = block;
+    container.parentNode.removeChild(container);
+    block.container.parentNode.insertBefore(container, block.container);
+  };
+  var cleanup = function() {
+    blockToMove.owner.onMouseOverBlock = function(block) {};
+    blockToMove.owner.onActivateBlock = function(block) {};
+    container.parentNode.removeChild(container);
+    blockToMove.container.style.display = "";
+  };
+  blockToMove.owner.onActivateBlock = function(block) {
+    cleanup();
+  };
+  container.onclick = function() {
+    cleanup();
+    targetBlock.owner.insertBlockBefore(blockToMove, targetBlock, false);
+  };
+};
+
 // markdown -> chunks
 upflow.parseToTokens = function(text) {
   return upflow.splitString(
@@ -290,8 +374,8 @@ upflow.roundTrip = function(block) {
   if (owner == null) {
     throw new Error("owner is null");
   }
-  var previousSibling = block.container.previousSibling;
-  var nextSibling = block.container.nextSibling;
+  var previousSibling = block.previousSiblingBlock();
+  var nextSibling = block.nextSiblingBlock();
   block.removeBlock();
   for (var i in tokens) {
     var newblock = upflow.createBlock(tokens[i]);
@@ -302,7 +386,7 @@ upflow.roundTrip = function(block) {
     } else {
       owner.appendBlock(newblock, true);
     }
-    previousSibling = newblock.container;
+    previousSibling = newblock;
   }
   owner.updateContentField();
   return true;
@@ -315,6 +399,7 @@ upflow.createBlock = function(initialValue) {
   block.container.className = "upflow-container";
   block.container.onmouseover = function() {
     block.container.className = "upflow-container-hover";
+    block.owner.onMouseOverBlock(block);
   };
   block.container.onmouseout = function() {
     block.container.className = "upflow-container";
@@ -403,14 +488,14 @@ upflow.createBlock = function(initialValue) {
   // toolbar -> Move
   block.moveButton = document.createElement("a");
   block.moveButton.href = "#";
-  block.moveButton.title = "Click to move this block up/down. (Not yet implemented)";
+  block.moveButton.title = "Click to move this block up/down.";
   block.moveButton.className = "upflow-action";
   block.moveButton.innerHTML = "Move";
   toolbar.appendChild(block.moveButton);
   block.moveButton.onclick = createEventHandler(
     function() {
-      if (!block.isOnlyBlock()) {
-        alert("todo: toolbar -> Move");
+      if (block.previousSiblingBlock()) {
+        upflow.ghost.start(block);
       }
     });
 
@@ -436,6 +521,7 @@ upflow.createBlock = function(initialValue) {
   block.preview.title = "Click to edit";
   block.preview.onclick = createEventHandler(
     function() {
+      block.owner.onActivateBlock(block);
       block.focus();
     });
 
