@@ -245,7 +245,7 @@ upflow.Canvas.prototype.getPreviousBlock = function(block) {
   }
 };
 
-upflow.Canvas.prototype.onMouseMoveBlock = function(block, posy) {};
+upflow.Canvas.prototype.onMouseMoveBlock = function(block, mousePosition) {};
 upflow.Canvas.prototype.onMouseOverBlock = function(block) {};
 upflow.Canvas.prototype.onActivateBlock = function(block) {};
 
@@ -374,17 +374,16 @@ upflow.startMove = function(block) {
   //container.style.height = upflow.getElementDimensions(blockToMove.container).h + 'px';
   blockToMove.container.parentNode.insertBefore(container, blockToMove.container);
   blockToMove.container.style.display = "none";
-  blockToMove.owner.onMouseMoveBlock = function(block, posy) {
+  blockToMove.owner.onMouseMoveBlock = function(block, mousePosition) {
     var splity = upflow.getElementPosition(block.container).y + (upflow.getElementDimensions(block.container).h / 2);
-    //console.log({'splity': splity, 'posy': posy});
-    if (posy > splity) {
+    if (mousePosition().y > splity) {
       positionAfter(block);
     } else {
       positionBefore(block);
     }
   };
   var cleanup = function() {
-    blockToMove.owner.onMouseMoveBlock = function(block) {};
+    blockToMove.owner.onMouseMoveBlock = function(block, mousePosition) {};
     blockToMove.owner.onActivateBlock = function(block) {};
     container.parentNode.removeChild(container);
     blockToMove.container.style.display = "";
@@ -447,17 +446,20 @@ upflow.createBlock = function(initialValue) {
   block.container = document.createElement("div");
   block.container.className = "upflow-container";
   block.container.onmousemove = function(e) {
-    var posx = 0;
-    var posy = 0;
     if (!e) var e = window.event;
-    if (e.pageX || e.pageY) 	{
-      posx = e.pageX;
-      posy = e.pageY;
-    } else if (e.clientX || e.clientY) 	{
-      posx = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
-      posy = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
-    }
-    block.owner.onMouseMoveBlock(block, posy);
+    var mousePosition = function() {
+      var posx = 0;
+      var posy = 0;
+      if (e.pageX || e.pageY) 	{
+        posx = e.pageX;
+        posy = e.pageY;
+      } else if (e.clientX || e.clientY) 	{
+        posx = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+        posy = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+      }
+      return {x: posx, y: posy};
+    };
+    block.owner.onMouseMoveBlock(block, mousePosition);
   };
   block.container.onmouseover = function() {
     block.container.className = "upflow-container-hover";
