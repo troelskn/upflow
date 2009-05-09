@@ -245,6 +245,7 @@ upflow.Canvas.prototype.getPreviousBlock = function(block) {
   }
 };
 
+upflow.Canvas.prototype.onMouseMoveBlock = function(block) {};
 upflow.Canvas.prototype.onMouseOverBlock = function(block) {};
 upflow.Canvas.prototype.onActivateBlock = function(block) {};
 
@@ -319,12 +320,33 @@ upflow.getElementDimensions = function(elem) {
   return {w: originalWidth, h: originalHeight};
 };
 
-upflow.ghost = {};
-upflow.ghost.start = function(block) {
+upflow.startMove = function(block) {
   var targetBlock = block.previousSiblingBlock();
+  var orientation = 'before';
   if (!targetBlock) {
-    throw new Error("Can't move topmost block");
+    var targetBlock = block.nextSiblingBlock();
+    var orientation = 'after';
+    if (!targetBlock) {
+      throw new Error("Can't move only block");
+    }
   }
+  var positionBefore = function(block) {
+    orientation = 'before';
+    targetBlock = block;
+    container.parentNode.removeChild(container);
+    block.container.parentNode.insertBefore(container, block.container);
+  };
+  var positionAfter = function(block) {
+    orientation = 'after';
+    targetBlock = block;
+    container.parentNode.removeChild(container);
+    // insertAfter
+    if (block.container.nextSibling) {
+      block.container.parentNode.insertBefore(container, block.container.nextSibling);
+    } else {
+      block.container.parentNode.appendChild(container);
+    }
+  };
   var blockToMove = block;
   var container = document.createElement("div");
   container.className = "upflow-preview upflow-ghost";
@@ -334,9 +356,16 @@ upflow.ghost.start = function(block) {
   blockToMove.container.parentNode.insertBefore(container, blockToMove.container);
   blockToMove.container.style.display = "none";
   blockToMove.owner.onMouseOverBlock = function(block) {
-    targetBlock = block;
-    container.parentNode.removeChild(container);
-    block.container.parentNode.insertBefore(container, block.container);
+    if (targetBlock == block) {
+      // switch position
+      if (orientation == 'before') {
+        positionAfter(block);
+      } else {
+        positionBefore(block);
+      }
+    } else {
+      positionBefore(block);
+    }
   };
   var cleanup = function() {
     blockToMove.owner.onMouseOverBlock = function(block) {};
@@ -349,7 +378,11 @@ upflow.ghost.start = function(block) {
   };
   container.onclick = function() {
     cleanup();
-    targetBlock.owner.insertBlockBefore(blockToMove, targetBlock, false);
+    if (orientation == 'before') {
+      targetBlock.owner.insertBlockBefore(blockToMove, targetBlock, false);
+    } else {
+      targetBlock.owner.insertBlockAfter(blockToMove, targetBlock, false);
+    }
   };
 };
 
@@ -397,6 +430,9 @@ upflow.createBlock = function(initialValue) {
   block.initialValue = initialValue;
   block.container = document.createElement("div");
   block.container.className = "upflow-container";
+  block.container.onmousemove = function() {
+    block.owner.onMouseMoveBlock(block);
+  };
   block.container.onmouseover = function() {
     block.container.className = "upflow-container-hover";
     block.owner.onMouseOverBlock(block);
@@ -494,8 +530,8 @@ upflow.createBlock = function(initialValue) {
   toolbar.appendChild(block.moveButton);
   block.moveButton.onclick = createEventHandler(
     function() {
-      if (block.previousSiblingBlock()) {
-        upflow.ghost.start(block);
+      if (!block.isOnlyBlock()) {
+        upflow.startMove(block);
       }
     });
 
