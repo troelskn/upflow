@@ -5,7 +5,7 @@ Upflow
 
 A [wysiwym](http://en.wikipedia.org/wiki/WYSIWYM "definition at Wikipedia") editor for [Markdown](http://daringfireball.net/projects/markdown/ "Markdown homepage").
 
-Demo at: [http://troelskn.googlepages.com/upflow.html](http://troelskn.googlepages.com/upflow.html)
+Demo at: [http://troelskn.github.com/upflow/](http://troelskn.github.com/upflow/)
 
 License and author
 ------------------
