@@ -478,6 +478,7 @@ upflow.createBlock = function(initialValue) {
 
   block.input = document.createElement("textarea");
   block.input.className = "upflow-editor";
+  block.input.tabIndex = 2;
   block.input.value = typeof(initialValue) == "undefined" ? "" : initialValue;
   // resize textfield to match content
   var lastValue = null;
@@ -583,7 +584,8 @@ upflow.createBlock = function(initialValue) {
   block.preview = document.createElement("div");
   block.preview.className = "upflow-preview";
   block.preview.title = "Click to edit";
-  block.preview.onclick = createEventHandler(
+  block.preview.tabIndex = 2;
+  block.preview.onfocus = createEventHandler(
     function() {
       block.owner.onActivateBlock(block);
       block.focus();
