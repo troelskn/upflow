@@ -2,7 +2,7 @@
     By Troels Knak-Nielsen <http://github.com/troelskn/>
     MIT license
  */
-upflow = {};
+var upflow = {};
 
 // some utilities
 upflow.escapeHtml = function(text) {
@@ -252,7 +252,7 @@ upflow.Canvas.prototype.onActivateBlock = function(block) {};
 upflow.bindKeyListeners = function(block) {
   var element = block.input;
   element.onkeypress = function(e) {
-    if (!e) {var e = window.event;}
+    if (!e) {e = window.event;}
     if (e.keyCode) {var code = e.keyCode;}
     else if (e.which) {var code = e.which;}
     if (code == 27) {
@@ -321,14 +321,15 @@ upflow.getElementDimensions = function(elem) {
 };
 
 upflow.getElementPosition = function(obj) {
-  var curleft = curtop = 0;
+  var curleft = 0;
+  var curtop = 0;
   if (obj.offsetParent) {
-    curleft = obj.offsetLeft
-      curtop = obj.offsetTop
-      while (obj = obj.offsetParent) {
-        curleft += obj.offsetLeft
-        curtop += obj.offsetTop
-      }
+    curleft = obj.offsetLeft;
+    curtop = obj.offsetTop;
+    while ((obj = obj.offsetParent)) {
+      curleft += obj.offsetLeft;
+      curtop += obj.offsetTop;
+    }
   }
   return {x: curleft, y: curtop};
 };
@@ -337,8 +338,8 @@ upflow.startMove = function(block) {
   var targetBlock = block.previousSiblingBlock();
   var orientation = 'before';
   if (!targetBlock) {
-    var targetBlock = block.nextSiblingBlock();
-    var orientation = 'after';
+    targetBlock = block.nextSiblingBlock();
+    orientation = 'after';
     if (!targetBlock) {
       throw new Error("Can't move only block");
     }
@@ -446,7 +447,7 @@ upflow.createBlock = function(initialValue) {
   block.container = document.createElement("div");
   block.container.className = "upflow-container";
   block.container.onmousemove = function(e) {
-    if (!e) var e = window.event;
+    if (!e) {e = window.event};
     var mousePosition = function() {
       var posx = 0;
       var posy = 0;
@@ -508,7 +509,7 @@ upflow.createBlock = function(initialValue) {
   var createEventHandler = function(handler) {
     return function(e) {
       handler();
-      if (!e) {var e = window.event;}
+      if (!e) {e = window.event;}
       e.cancelBubble = true;
       if (e.stopPropagation) {e.stopPropagation();}
       return false;
