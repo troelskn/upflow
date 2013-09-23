@@ -1,0 +1,98 @@
+.upflow-canvas {
+  padding: .5em;
+  border: 1px solid #888;
+}
+.upflow-ghost {
+  border: 3px dotted #ccc;
+  background-color: #ccc;
+  margin: .5em 0;
+  filter: alpha(opacity=25);
+  -moz-opacity: .25;
+  -webkit-opacity: .25;
+  opacity: .25;
+  cursor: move;
+}
+.upflow-container,
+.upflow-container-hover {
+  clear: both;
+  padding-top: .25em;
+  padding-bottom: .25em;
+}
+.upflow-container-hover {
+  background-color: #edf8ff;
+}
+.upflow-br {
+  clear: both;
+  height: 1px;
+}
+.upflow-field {}
+.upflow-action {
+  font-family: sans-serif;
+  font-size: .75em;
+  color: #888;
+  text-decoration: none;
+}
+.upflow-action:hover {
+  text-decoration: underline;
+}
+.upflow-editor {
+  font-family: serif;
+  font-size: 1em;
+  height: 10em;
+  width: 100%;
+}
+.upflow-preview,
+.upflow-preview h1,
+.upflow-preview h2,
+.upflow-preview h3,
+.upflow-preview h4,
+.upflow-preview h5,
+.upflow-preview h6,
+.upflow-preview blockquote,
+.upflow-preview p {
+  margin: 0;
+  font-family: serif;
+  font-size: 1em;
+  font-weight: normal;
+  color: black;
+}
+.upflow-preview img {
+  min-width: 10em;
+}
+.upflow-preview code {
+  background-color: #eee;
+}
+.upflow-preview blockquote {
+  padding: .25em;
+  background-color: #eee;
+  text-indent: 2em;
+  font-style: italic;
+  font-family: Georgia, serif;
+}
+.upflow-preview pre {
+  padding: .25em;
+  background-color: #eee;
+
+}
+.upflow-preview h1 {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+.upflow-preview h2 {
+  font-size: 1.5em;
+}
+.upflow-preview h3,
+.upflow-preview h4,
+.upflow-preview h5,
+.upflow-preview h6 {
+  font-size: 1em;
+  line-height: 2em;
+  font-weight: bold;
+}
+.upflow-preview table {
+  width: 100%;
+}
+.upflow-preview caption {
+  background-color: #eee;
+  padding: .25em;
+}
